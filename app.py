@@ -49,7 +49,6 @@ def verify():
         actual_otp = session.get('otp')
 
         if entered_otp == actual_otp:
-            flash('OTP Verified Successfully!', 'success')
             return redirect(url_for('dashboard'))
         else:
             flash('Invalid OTP. Please try again.', 'danger')
