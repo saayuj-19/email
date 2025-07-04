@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session, flash
+from flask import Flask, render_template, request, redirect, session, url_for, flash
 from flask_mail import Mail, Message
 import random
 import os
@@ -9,7 +9,6 @@ app = Flask(__name__)
 
 app.secret_key = os.getenv('SECRET_KEY')
 
-# Flask-Mail configuration
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
@@ -34,19 +33,29 @@ def index():
         msg = Message('Your OTP Verification Code', recipients=[email], html=html)
         mail.send(msg)
 
-        return redirect('/verify')
+        return redirect(url_for('verify'))
 
     return render_template('index.html')
 
 @app.route('/verify', methods=['GET', 'POST'])
 def verify():
     if request.method == 'POST':
-        user_otp = request.form['otp']
-        if user_otp == session.get('otp'):
-            flash("OTP Verified Successfully!", "success")
+        entered_otp = request.form['otp']
+        actual_otp = session.get('otp')
+
+        if entered_otp == actual_otp:
+            flash('OTP Verified Successfully!', 'success')
+            return redirect(url_for('dashboard'))
         else:
-            flash("Invalid OTP. Please try again.", "danger")
+            flash('Invalid OTP. Please try again.', 'danger')
+            return render_template('verify.html')
+
     return render_template('verify.html')
+
+@app.route('/dashboard')
+def dashboard():
+    user = session.get('name', 'Guest')
+    return render_template('dashboard.html', user=user)
 
 if __name__ == '__main__':
     app.run(debug=True)
